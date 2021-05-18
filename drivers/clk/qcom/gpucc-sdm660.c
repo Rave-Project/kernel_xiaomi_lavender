@@ -189,19 +189,6 @@ static const struct freq_tbl ftbl_gfx3d_clk_src[] = {
 	{ }
 };
 
-static const struct freq_tbl ftbl_gfx3d_clk_src_630[] = {
-	F_GFX( 19200000, 0,  1, 0, 0,         0),
-	F_GFX(160000000, 0,  2, 0, 0,  640000000),
-	F_GFX(240000000, 0,  2, 0, 0,  480000000),
-	F_GFX(370000000, 0,  2, 0, 0,  740000000),
-	F_GFX(465000000, 0,  2, 0, 0,  930000000),
-	F_GFX(588000000, 0,  2, 0, 0, 1176000000),
-	F_GFX(647000000, 0,  2, 0, 0, 1294000000),
-	F_GFX(700000000, 0,  2, 0, 0, 1400000000),
-	F_GFX(775000000, 0,  2, 0, 0, 1550000000),
-	{ }
-};
-
 static struct clk_rcg2 gfx3d_clk_src = {
 	.cmd_rcgr = 0x1070,
 	.mnd_width = 0,
@@ -341,7 +328,6 @@ static const struct qcom_cc_desc gpucc_660_desc = {
 
 static const struct of_device_id gpucc_660_match_table[] = {
 	{ .compatible = "qcom,gpucc-sdm660" },
-	{ .compatible = "qcom,gpucc-sdm630" },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, gpucc_660_match_table);
@@ -410,7 +396,6 @@ static int gpucc_660_probe(struct platform_device *pdev)
 	struct regmap *regmap;
 	struct resource *res;
 	void __iomem *base;
-	bool is_630 = 0;
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	if (res == NULL) {
@@ -451,17 +436,6 @@ static int gpucc_660_probe(struct platform_device *pdev)
 			dev_err(&pdev->dev,
 					"Unable to get vdd_gfx regulator\n");
 		return PTR_ERR(vdd_gfx.regulator[0]);
-	}
-
-	is_630 = of_device_is_compatible(pdev->dev.of_node,
-					"qcom,gpucc-sdm630");
-	if (is_630) {
-		gpu_pll0_pll_out_main.clkr.hw.init->rate_max[VDD_DIG_LOW_L1]
-						= 1550000000;
-		gpu_pll1_pll_out_main.clkr.hw.init->rate_max[VDD_DIG_LOW_L1]
-						= 1550000000;
-		/* Add new frequency table */
-		gfx3d_clk_src.freq_tbl = ftbl_gfx3d_clk_src_630;
 	}
 
 	/* GFX rail fmax data linked to branch clock */
