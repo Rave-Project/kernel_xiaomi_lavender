@@ -3095,7 +3095,6 @@ static int clk_cpu_osm_driver_probe(struct platform_device *pdev)
 {
 	int rc = 0, cpu, i;
 	int speedbin = 0, pvs_ver = 0;
-	bool is_sdm630 = 0;
 	u32 pte_efuse;
 	int num_clks = ARRAY_SIZE(osm_qcom_clk_hws);
 	struct clk *clk;
@@ -3354,13 +3353,6 @@ static int clk_cpu_osm_driver_probe(struct platform_device *pdev)
 		     "Failed to enable clock for cpu %d\n", cpu);
 	}
 
-	is_sdm630 = of_device_is_compatible(pdev->dev.of_node,
-					"qcom,clk-cpu-osm-sdm630");
-	if (is_sdm630) {
-		pwrcl_boot_rate = 1382400000;
-		perfcl_boot_rate = 1670400000;
-	}
-
 	/* Set final boot rate */
 	rc = clk_set_rate(pwrcl_clk.hw.clk, pwrcl_boot_rate);
 	if (rc) {
@@ -3401,7 +3393,6 @@ exit:
 
 static const struct of_device_id match_table[] = {
 	{ .compatible = "qcom,clk-cpu-osm" },
-	{ .compatible = "qcom,clk-cpu-osm-sdm630" },
 	{}
 };
 
