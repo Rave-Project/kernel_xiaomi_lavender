@@ -342,31 +342,6 @@ static bool a5xx_is_sptp_idle(struct adreno_device *adreno_dev)
 }
 
 /*
- * _poll_gdsc_status() - Poll the GDSC status register
- * @adreno_dev: The adreno device pointer
- * @status_reg: Offset of the status register
- * @status_value: The expected bit value
- *
- * Poll the status register till the power-on bit is equal to the
- * expected value or the max retries are exceeded.
- */
-static int _poll_gdsc_status(struct adreno_device *adreno_dev,
-				unsigned int status_reg,
-				unsigned int status_value)
-{
-	unsigned int reg, retry = PWR_RETRY;
-
-	/* Bit 20 is the power on bit of SPTP and RAC GDSC status register */
-	do {
-		udelay(1);
-		kgsl_regread(KGSL_DEVICE(adreno_dev), status_reg, &reg);
-	} while (((reg & BIT(20)) != (status_value << 20)) && retry--);
-	if ((reg & BIT(20)) != (status_value << 20))
-		return -ETIMEDOUT;
-	return 0;
-}
-
-/*
  * a5xx_regulator_enable() - Enable any necessary HW regulators
  * @adreno_dev: The adreno device pointer
  *
@@ -383,59 +358,6 @@ static int a5xx_regulator_enable(struct adreno_device *adreno_dev)
 	/* Turn on sp_input_clk at HM level */
 	kgsl_regrmw(device, A5XX_RBBM_CLOCK_CNTL, 0xFF, 0);
 	return 0;
-}
-
-/*
- * a5xx_regulator_disable() - Disable any necessary HW regulators
- * @adreno_dev: The adreno device pointer
- *
- * Some HW blocks may need their regulators explicitly disabled
- * on a power down to prevent current spikes.  Clocks must be on
- * during this call.
- */
-static void a5xx_regulator_disable(struct adreno_device *adreno_dev)
-{
-	unsigned int reg;
-	struct kgsl_device *device = KGSL_DEVICE(adreno_dev);
-
-	if (adreno_is_a512(adreno_dev) || adreno_is_a509(adreno_dev))
-		return;
-
-	/* If feature is not supported or not enabled */
-	if (!ADRENO_FEATURE(adreno_dev, ADRENO_SPTP_PC) ||
-		!test_bit(ADRENO_SPTP_PC_CTRL, &adreno_dev->pwrctrl_flag)) {
-		/* Set the default register values; set SW_COLLAPSE to 1 */
-		kgsl_regwrite(device, A5XX_GPMU_SP_POWER_CNTL, 0x778001);
-		/*
-		 * Insert a delay between SPTP and RAC GDSC to reduce voltage
-		 * droop.
-		 */
-		udelay(3);
-		if (_poll_gdsc_status(adreno_dev,
-					A5XX_GPMU_SP_PWR_CLK_STATUS, 0))
-			KGSL_PWR_WARN(device, "SPTP GDSC disable failed\n");
-
-		kgsl_regwrite(device, A5XX_GPMU_RBCCU_POWER_CNTL, 0x778001);
-		if (_poll_gdsc_status(adreno_dev,
-					A5XX_GPMU_RBCCU_PWR_CLK_STATUS, 0))
-			KGSL_PWR_WARN(device, "RBCCU GDSC disable failed\n");
-	} else if (test_bit(ADRENO_DEVICE_GPMU_INITIALIZED,
-			&adreno_dev->priv)) {
-		/* GPMU firmware is supposed to turn off SPTP & RAC GDSCs. */
-		kgsl_regread(device, A5XX_GPMU_SP_PWR_CLK_STATUS, &reg);
-		if (reg & BIT(20))
-			KGSL_PWR_WARN(device, "SPTP GDSC is not disabled\n");
-		kgsl_regread(device, A5XX_GPMU_RBCCU_PWR_CLK_STATUS, &reg);
-		if (reg & BIT(20))
-			KGSL_PWR_WARN(device, "RBCCU GDSC is not disabled\n");
-		/*
-		 * GPMU firmware is supposed to set GMEM to non-retention.
-		 * Bit 14 is the memory core force on bit.
-		 */
-		kgsl_regread(device, A5XX_GPMU_RBCCU_CLOCK_CNTL, &reg);
-		if (reg & BIT(14))
-			KGSL_PWR_WARN(device, "GMEM is forced on\n");
-	}
 }
 
 /*
@@ -1173,32 +1095,13 @@ static void a5xx_start(struct adreno_device *adreno_dev)
 	 * Below CP registers are 0x0 by default, program init
 	 * values based on a5xx flavor.
 	 */
-	if (adreno_is_a510(adreno_dev)) {
-		kgsl_regwrite(device, A5XX_CP_MEQ_THRESHOLDS, 0x20);
-		kgsl_regwrite(device, A5XX_CP_MERCIU_SIZE, 0x20);
-		kgsl_regwrite(device, A5XX_CP_ROQ_THRESHOLDS_2, 0x40000030);
-		kgsl_regwrite(device, A5XX_CP_ROQ_THRESHOLDS_1, 0x20100D0A);
-	} else {
-		kgsl_regwrite(device, A5XX_CP_MEQ_THRESHOLDS, 0x40);
-		kgsl_regwrite(device, A5XX_CP_MERCIU_SIZE, 0x40);
-		kgsl_regwrite(device, A5XX_CP_ROQ_THRESHOLDS_2, 0x80000060);
-		kgsl_regwrite(device, A5XX_CP_ROQ_THRESHOLDS_1, 0x40201B16);
-	}
+	kgsl_regwrite(device, A5XX_CP_MEQ_THRESHOLDS, 0x40);
+	kgsl_regwrite(device, A5XX_CP_MERCIU_SIZE, 0x40);
+	kgsl_regwrite(device, A5XX_CP_ROQ_THRESHOLDS_2, 0x80000060);
+	kgsl_regwrite(device, A5XX_CP_ROQ_THRESHOLDS_1, 0x40201B16);
 
-	/*
-	 * vtxFifo and primFifo thresholds default values
-	 * are different.
-	 */
-	if (adreno_is_a505_or_a506(adreno_dev))
-		kgsl_regwrite(device, A5XX_PC_DBG_ECO_CNTL,
-						(0x100 << 11 | 0x100 << 22));
-	else if (adreno_is_a510(adreno_dev) || adreno_is_a512(adreno_dev) ||
-			adreno_is_a509(adreno_dev))
-		kgsl_regwrite(device, A5XX_PC_DBG_ECO_CNTL,
-						(0x200 << 11 | 0x200 << 22));
-	else
-		kgsl_regwrite(device, A5XX_PC_DBG_ECO_CNTL,
-						(0x400 << 11 | 0x300 << 22));
+	kgsl_regwrite(device, A5XX_PC_DBG_ECO_CNTL,
+					(0x200 << 11 | 0x200 << 22));
 
 	if (ADRENO_QUIRK(adreno_dev, ADRENO_QUIRK_TWO_PASS_USE_WFI)) {
 		/*
@@ -1272,10 +1175,9 @@ static void a5xx_start(struct adreno_device *adreno_dev)
 
 			kgsl_regwrite(device, A5XX_TPL1_MODE_CNTL, bit << 7);
 			kgsl_regwrite(device, A5XX_RB_MODE_CNTL, bit << 1);
-			if (adreno_is_a512(adreno_dev) ||
-				adreno_is_a509(adreno_dev))
-				kgsl_regwrite(device, A5XX_UCHE_DBG_ECO_CNTL_2,
-					bit);
+
+			kgsl_regwrite(device, A5XX_UCHE_DBG_ECO_CNTL_2,
+				bit);
 		}
 
 	}
@@ -1480,15 +1382,7 @@ static void a5xx_zap_shader_unload(struct adreno_device *adreno_dev)
 
 static int _me_init_ucode_workarounds(struct adreno_device *adreno_dev)
 {
-	switch (ADRENO_GPUREV(adreno_dev)) {
-	case ADRENO_REV_A510:
-		return 0x00000001; /* Ucode workaround for token end syncs */
-	case ADRENO_REV_A505:
-	case ADRENO_REV_A506:
-		return 0x0000000B;
-	default:
-		return 0x00000000; /* No ucode workarounds enabled */
-	}
+	return 0x00000000; /* No ucode workarounds enabled */
 }
 
 /*
@@ -2643,7 +2537,6 @@ struct adreno_gpudev adreno_a5xx_gpudev = {
 	.vbif_xin_halt_ctrl0_mask = A5XX_VBIF_XIN_HALT_CTRL0_MASK,
 	.is_sptp_idle = a5xx_is_sptp_idle,
 	.regulator_enable = a5xx_regulator_enable,
-	.regulator_disable = a5xx_regulator_disable,
 	.pwrlevel_change_settings = a5xx_pwrlevel_change_settings,
 	.enable_pwr_counters = a5xx_enable_pwr_counters,
 	.preemption_pre_ibsubmit = a5xx_preemption_pre_ibsubmit,
