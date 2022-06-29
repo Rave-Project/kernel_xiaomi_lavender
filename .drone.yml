@@ -1,0 +1,16 @@
+kind: pipeline
+name: Rave
+
+clone:
+  depth: 1
+
+steps:
+- name: Building
+  image: fadlyas/kernel_dockerfile
+  environment:
+    bot_token:
+      from_secret: BOT_API_KEY
+    chat_id:
+      from_secret: CHAT_ID
+  commands:
+  - bash build.sh
