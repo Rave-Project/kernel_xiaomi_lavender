@@ -90,9 +90,7 @@ static int mmc_io_rw_direct_host(struct mmc_host *host, int write, unsigned fn,
 	if (err)
 		return err;
 
-	if (mmc_host_is_spi(host)) {
-		/* host driver already reported errors */
-	} else {
+	if (!mmc_host_is_spi(host)) {
 		if (cmd.resp[0] & R5_ERROR)
 			return -EIO;
 		if (cmd.resp[0] & R5_FUNCTION_NUMBER)
