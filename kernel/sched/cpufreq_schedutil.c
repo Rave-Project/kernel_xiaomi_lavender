@@ -317,7 +317,7 @@ static void sugov_update_single(struct update_util_data *hook, u64 time,
 		 */
 #ifdef CONFIG_NO_HZ_COMMON
 		if (sugov_cpu_is_busy(sg_cpu) && next_f < sg_policy->next_freq &&
-		    sg_policy->next_freq != UINT_MAX) {
+		    sg_policy->next_freq) {
 			next_f = sg_policy->next_freq;
 
 			/* Reset cached freq as next_freq has changed */
