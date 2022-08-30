@@ -281,9 +281,7 @@ static bool sugov_cpu_is_busy(struct sugov_cpu *sg_cpu)
 	sg_cpu->saved_idle_calls = idle_calls;
 	return ret;
 }
-#else
-static inline bool sugov_cpu_is_busy(struct sugov_cpu *sg_cpu) { return false; }
-#endif /* CONFIG_NO_HZ_COMMON */
+#endif
 
 static void sugov_update_single(struct update_util_data *hook, u64 time,
 				unsigned int flags)
@@ -293,7 +291,6 @@ static void sugov_update_single(struct update_util_data *hook, u64 time,
 	struct cpufreq_policy *policy = sg_policy->policy;
 	unsigned long util, max;
 	unsigned int next_f;
-	bool busy;
 
 	sugov_set_iowait_boost(sg_cpu, time, flags);
 	sg_cpu->last_update = time;
@@ -308,8 +305,6 @@ static void sugov_update_single(struct update_util_data *hook, u64 time,
 	if (!sugov_should_update_freq(sg_policy, time))
 		return;
 
-	busy = sugov_cpu_is_busy(sg_cpu);
-
 	if (flags & SCHED_CPUFREQ_DL) {
 		next_f = policy->cpuinfo.max_freq;
 	} else {
@@ -320,13 +315,15 @@ static void sugov_update_single(struct update_util_data *hook, u64 time,
 		 * Do not reduce the frequency if the CPU has not been idle
 		 * recently, as the reduction is likely to be premature then.
 		 */
-		if (busy && next_f < sg_policy->next_freq &&
+#ifdef CONFIG_NO_HZ_COMMON
+		if (sugov_cpu_is_busy(sg_cpu) && next_f < sg_policy->next_freq &&
 		    sg_policy->next_freq != UINT_MAX) {
 			next_f = sg_policy->next_freq;
 
 			/* Reset cached freq as next_freq has changed */
 			sg_policy->cached_raw_freq = 0;
 		}
+#endif
 	}
 	sugov_update_commit(sg_policy, time, next_f);
 }
