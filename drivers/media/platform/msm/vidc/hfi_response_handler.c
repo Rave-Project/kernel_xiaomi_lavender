@@ -1590,10 +1590,11 @@ static int hfi_process_session_etb_done(u32 device_id,
 			dprintk(VIDC_DBG,
 				"Non-Sync frame sent for H264/HEVC\n");
 	}
-
+#ifdef CONFIG_MSM_VIDC_DEBUG
 	trace_msm_v4l2_vidc_buffer_event_end("ETB",
 		(u32)pkt->packet_buffer, -1, -1,
 		pkt->filled_len, pkt->offset);
+#endif
 
 	*info = (struct msm_vidc_cb_info) {
 		.response_type =  HAL_SESSION_ETB_DONE,
@@ -1719,6 +1720,7 @@ static int hfi_process_session_ftb_done(
 			data_done.output_done.buffer_type = HAL_BUFFER_OUTPUT2;
 	}
 
+#ifdef CONFIG_MSM_VIDC_DEBUG
 	trace_msm_v4l2_vidc_buffer_event_end("FTB",
 		(u32)data_done.output_done.packet_buffer1,
 		(((u64)data_done.output_done.timestamp_hi) << 32)
@@ -1726,7 +1728,7 @@ static int hfi_process_session_ftb_done(
 		data_done.output_done.alloc_len1,
 		data_done.output_done.filled_len1,
 		data_done.output_done.offset1);
-
+#endif
 	*info = (struct msm_vidc_cb_info) {
 		.response_type =  HAL_SESSION_FTB_DONE,
 		.response.data = data_done,

@@ -1659,14 +1659,18 @@ static int msm_venc_queue_setup(struct vb2_queue *q,
 
 		if (*num_buffers < MIN_NUM_CAPTURE_BUFFERS ||
 				*num_buffers > VB2_MAX_FRAME) {
+#ifdef CONFIG_MSM_VIDC_DEBUG
 			int temp = *num_buffers;
+#endif
 
 			*num_buffers = clamp_val(*num_buffers,
 					MIN_NUM_CAPTURE_BUFFERS,
 					VB2_MAX_FRAME);
+#ifdef CONFIG_MSM_VIDC_DEBUG
 			dprintk(VIDC_INFO,
 				"Changing buffer count on CAPTURE_MPLANE from %d to %d for best effort encoding\n",
 				temp, *num_buffers);
+#endif
 		}
 
 		for (i = 0; i < *num_planes; i++) {
