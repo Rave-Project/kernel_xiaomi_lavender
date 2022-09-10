@@ -27,7 +27,6 @@
 #include "rmnet_stats.h"
 #include "rmnet_handlers.h"
 
-RMNET_LOG_MODULE(RMNET_LOGMASK_HANDLER);
 
 #ifdef CONFIG_RMNET_DEBUG
 unsigned int dump_pkt_rx;

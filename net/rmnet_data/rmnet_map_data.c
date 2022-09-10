@@ -38,8 +38,6 @@
 #include "rmnet_data_stats.h"
 #include "rmnet_data_trace.h"
 
-RMNET_LOG_MODULE(RMNET_DATA_LOGMASK_MAPD);
-
 /* ***************** Local Definitions ************************************** */
 
 long agg_time_limit __read_mostly = 1000000L;

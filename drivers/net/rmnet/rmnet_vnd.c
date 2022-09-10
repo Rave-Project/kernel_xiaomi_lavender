@@ -28,7 +28,6 @@
 #include "rmnet_vnd.h"
 #include "rmnet_stats.h"
 
-RMNET_LOG_MODULE(RMNET_LOGMASK_VND);
 
 struct net_device *rmnet_devices[RMNET_MAX_VND];
 

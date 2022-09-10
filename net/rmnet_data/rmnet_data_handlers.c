@@ -30,8 +30,6 @@
 #include "rmnet_data_stats.h"
 #include "rmnet_data_trace.h"
 
-RMNET_LOG_MODULE(RMNET_DATA_LOGMASK_HANDLER);
-
 
 void rmnet_egress_handler(struct sk_buff *skb,
 			  struct rmnet_logical_ep_conf_s *ep);
