@@ -52,8 +52,9 @@ static int msm_v4l2_open(struct file *filp)
 		container_of(vdev, struct msm_video_device, vdev);
 	struct msm_vidc_core *core = video_drvdata(filp);
 	struct msm_vidc_inst *vidc_inst;
-
+#ifdef CONFIG_MSM_VIDC_DEBUG
 	trace_msm_v4l2_vidc_open_start("msm_v4l2_open start");
+#endif
 	vidc_inst = msm_vidc_open(core->id, vid_dev->type);
 	if (!vidc_inst) {
 		dprintk(VIDC_ERR,
@@ -63,7 +64,9 @@ static int msm_v4l2_open(struct file *filp)
 	}
 	clear_bit(V4L2_FL_USES_V4L2_FH, &vdev->flags);
 	filp->private_data = &(vidc_inst->event_handler);
+#ifdef CONFIG_MSM_VIDC_DEBUG
 	trace_msm_v4l2_vidc_open_end("msm_v4l2_open end");
+#endif
 	return 0;
 }
 
@@ -72,7 +75,9 @@ static int msm_v4l2_close(struct file *filp)
 	int rc = 0;
 	struct msm_vidc_inst *vidc_inst;
 
+#ifdef CONFIG_MSM_VIDC_DEBUG
 	trace_msm_v4l2_vidc_close_start("msm_v4l2_close start");
+#endif
 	vidc_inst = get_vidc_inst(filp, NULL);
 	rc = msm_vidc_release_buffers(vidc_inst,
 			V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE);
@@ -81,7 +86,9 @@ static int msm_v4l2_close(struct file *filp)
 			"Failed in %s for release output buffers\n", __func__);
 
 	rc = msm_vidc_close(vidc_inst);
+#ifdef CONFIG_MSM_VIDC_DEBUG
 	trace_msm_v4l2_vidc_close_end("msm_v4l2_close end");
+#endif
 	return rc;
 }
 
@@ -564,10 +571,12 @@ static int msm_vidc_probe_vidc_device(struct platform_device *pdev)
 	mutex_lock(&vidc_driver->lock);
 	list_add_tail(&core->list, &vidc_driver->cores);
 	mutex_unlock(&vidc_driver->lock);
-
+#ifdef CONFIG_MSM_VIDC_DEBUG
 	core->debugfs_root = msm_vidc_debugfs_init_core(
 		core, vidc_driver->debugfs_root);
-
+#else
+	core->debugfs_root = NULL;
+#endif
 	vidc_driver->platform_version = 0;
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "efuse");
 	if (!res) {
@@ -769,7 +778,13 @@ static int __init msm_vidc_init(void)
 
 	INIT_LIST_HEAD(&vidc_driver->cores);
 	mutex_init(&vidc_driver->lock);
+
+#ifdef CONFIG_MSM_VIDC_DEBUG
 	vidc_driver->debugfs_root = msm_vidc_debugfs_init_drv();
+#else
+	vidc_driver->debugfs_root = NULL;
+#endif
+
 	if (!vidc_driver->debugfs_root)
 #ifdef CONFIG_DEBUG_FS
 		dprintk(VIDC_ERR,

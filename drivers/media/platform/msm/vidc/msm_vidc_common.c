@@ -904,7 +904,9 @@ static int wait_for_sess_signal_receipt(struct msm_vidc_inst *inst,
 		dprintk(VIDC_ERR,
 			"sess resp timeout can potentially crash the system\n");
 		msm_comm_print_debug_info(inst);
+#ifdef CONFIG_MSM_VIDC_DEBUG
 		BUG_ON(msm_vidc_debug_timeout);
+#endif
 		msm_comm_kill_session(inst);
 		rc = -EIO;
 	} else {
@@ -1761,8 +1763,9 @@ static void handle_sys_error(enum hal_command_response cmd, void *data)
 	list_for_each_entry(inst, &core->instances, list)
 		msm_comm_print_inst_info(inst);
 	mutex_unlock(&core->lock);
-
+#ifdef CONFIG_MSM_VIDC_DEBUG
 	BUG_ON(msm_vidc_debug_timeout);
+#endif
 }
 
 void msm_comm_session_clean(struct msm_vidc_inst *inst)
@@ -1912,7 +1915,9 @@ static void handle_ebd(enum hal_command_response cmd, void *data)
 		mutex_lock(&inst->bufq[OUTPUT_PORT].lock);
 		vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
 		mutex_unlock(&inst->bufq[OUTPUT_PORT].lock);
+#ifdef CONFIG_MSM_VIDC_DEBUG
 		msm_vidc_debugfs_update(inst, MSM_VIDC_DEBUGFS_EVENT_EBD);
+#endif
 	}
 
 	put_inst(inst);
@@ -2231,7 +2236,9 @@ static void handle_fbd(enum hal_command_response cmd, void *data)
 		mutex_lock(&inst->bufq[CAPTURE_PORT].lock);
 		vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
 		mutex_unlock(&inst->bufq[CAPTURE_PORT].lock);
+#ifdef CONFIG_MSM_VIDC_DEBUG
 		msm_vidc_debugfs_update(inst, MSM_VIDC_DEBUGFS_EVENT_FBD);
+#endif
 	}
 
 err_handle_fbd:
@@ -2578,7 +2585,9 @@ static int msm_comm_session_abort(struct msm_vidc_inst *inst)
 			"ABORT timeout can potentially crash the system\n");
 		msm_comm_print_debug_info(inst);
 
+#ifdef CONFIG_MSM_VIDC_DEBUG
 		BUG_ON(msm_vidc_debug_timeout);
+#endif
 		rc = -EBUSY;
 	} else {
 		rc = 0;
@@ -2686,7 +2695,9 @@ int msm_comm_check_core_init(struct msm_vidc_core *core)
 		}
 		mutex_lock(&core->lock);
 
+#ifdef CONFIG_MSM_VIDC_DEBUG
 		BUG_ON(msm_vidc_debug_timeout);
+#endif
 		rc = -EIO;
 		goto exit;
 	} else {
@@ -3583,9 +3594,11 @@ exit:
 		dprintk(VIDC_ERR,
 				"Failed to move from state: %d to %d\n",
 				inst->state, state);
+#ifdef CONFIG_MSM_VIDC_DEBUG
 	else
 		trace_msm_vidc_common_state_change((void *)inst,
 				inst->state, state);
+#endif
 	return rc;
 }
 
@@ -3752,8 +3765,9 @@ static void log_frame(struct msm_vidc_inst *inst, struct vidc_frame_data *data,
 				"Sending etb (%pa) to hal: filled: %d, ts: %lld, flags = %#x\n",
 				&data->device_addr, data->filled_len,
 				data->timestamp, data->flags);
+#ifdef CONFIG_MSM_VIDC_DEBUG
 		msm_vidc_debugfs_update(inst, MSM_VIDC_DEBUGFS_EVENT_ETB);
-
+#endif
 		if (msm_vidc_bitrate_clock_scaling &&
 			inst->session_type == MSM_VIDC_DECODER &&
 			!inst->dcvs_mode)
@@ -3766,7 +3780,9 @@ static void log_frame(struct msm_vidc_inst *inst, struct vidc_frame_data *data,
 				"Sending ftb (%pa) to hal: size: %d, ts: %lld, flags = %#x\n",
 				&data->device_addr, data->alloc_len,
 				data->timestamp, data->flags);
+#ifdef CONFIG_MSM_VIDC_DEBUG
 		msm_vidc_debugfs_update(inst, MSM_VIDC_DEBUGFS_EVENT_FTB);
+#endif
 	}
 
 	msm_dcvs_check_and_scale_clocks(inst,
@@ -4122,7 +4138,9 @@ int msm_comm_try_get_prop(struct msm_vidc_inst *inst, enum hal_property ptype,
 			"SESS_PROP timeout can potentially crash the system\n");
 		msm_comm_print_debug_info(inst);
 
+#ifdef CONFIG_MSM_VIDC_DEBUG
 		BUG_ON(msm_vidc_debug_timeout);
+#endif
 		msm_comm_kill_session(inst);
 		rc = -ETIMEDOUT;
 		goto exit;
@@ -4725,10 +4743,12 @@ int msm_comm_flush(struct msm_vidc_inst *inst, u32 flags)
 
 			mutex_lock(lock);
 			vb2_buffer_done(temp->vb, VB2_BUF_STATE_DONE);
+#ifdef CONFIG_MSM_VIDC_DEBUG
 			msm_vidc_debugfs_update(inst,
 				type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE ?
 					MSM_VIDC_DEBUGFS_EVENT_FBD :
 					MSM_VIDC_DEBUGFS_EVENT_EBD);
+#endif
 			list_del(&temp->list);
 			mutex_unlock(lock);
 

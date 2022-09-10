@@ -583,14 +583,18 @@ static int msm_vidc_check_dcvs_enabled(struct msm_vidc_platform_resources *res)
 		 * disable-dcvs-enc is an optional property.
 		 */
 		dprintk(VIDC_DBG, "disable-dcvs-enc\n");
+#ifdef CONFIG_MSM_VIDC_DEBUG
 		msm_vidc_enc_dcvs_mode = false;
+#endif
 	}
 	if (of_find_property(pdev->dev.of_node, "disable-dcvs-dec", NULL)) {
 		/*
 		 * disable-dcvs-dec is an optional property.
 		 */
 		dprintk(VIDC_DBG, "disable-dcvs-dec\n");
+#ifdef CONFIG_MSM_VIDC_DEBUG
 		msm_vidc_dec_dcvs_mode = false;
+#endif
 	}
 
 	return 0;
@@ -1150,8 +1154,9 @@ int read_platform_resources_from_dt(
 	res->debug_timeout = of_property_read_bool(pdev->dev.of_node,
 			"qcom,debug-timeout");
 
+#ifdef CONFIG_MSM_VIDC_DEBUG
 	msm_vidc_debug_timeout |= res->debug_timeout;
-
+#endif
 	of_property_read_u32(pdev->dev.of_node,
 			"qcom,pm-qos-latency-us", &res->pm_qos_latency_us);
 

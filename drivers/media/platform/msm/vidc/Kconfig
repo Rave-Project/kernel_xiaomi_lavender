@@ -7,5 +7,12 @@ menuconfig MSM_VIDC_V4L2
 		depends on ARCH_QCOM && VIDEO_V4L2
 		select VIDEOBUF2_CORE
 
+config MSM_VIDC_DEBUG
+	bool "Vidc debug"
+	default n
+	depends on MSM_VIDC_V4L2
+	help
+	  Enable vidic debug.
+
 source "drivers/media/platform/msm/vidc/vmem/Kconfig"
 source "drivers/media/platform/msm/vidc/governors/Kconfig"
