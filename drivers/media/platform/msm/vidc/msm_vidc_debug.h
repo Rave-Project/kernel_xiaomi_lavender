@@ -52,9 +52,11 @@ enum msm_vidc_debugfs_event {
 	MSM_VIDC_DEBUGFS_EVENT_FTB,
 	MSM_VIDC_DEBUGFS_EVENT_FBD,
 };
-
+#ifdef CONFIG_MSM_VIDC_DEBUG
 extern int msm_vidc_debug;
 extern int msm_vidc_debug_out;
+extern bool msm_vidc_debug_timeout;
+extern bool msm_vidc_thermal_mitigation_disabled;
 extern int msm_vidc_fw_debug;
 extern int msm_vidc_fw_debug_mode;
 extern int msm_vidc_fw_low_power_mode;
@@ -65,9 +67,21 @@ extern bool msm_vidc_dec_dcvs_mode;
 extern bool msm_vidc_enc_dcvs_mode;
 extern bool msm_vidc_sys_idle_indicator;
 extern int msm_vidc_firmware_unload_delay;
-extern bool msm_vidc_thermal_mitigation_disabled;
 extern bool msm_vidc_bitrate_clock_scaling;
-extern bool msm_vidc_debug_timeout;
+#else
+#define msm_vidc_debug					0
+#define msm_vidc_sys_idle_indicator		0
+#define msm_vidc_dec_dcvs_mode			0
+#define msm_vidc_fw_low_power_mode		0
+#define msm_vidc_thermal_mitigation_disabled	0
+#define msm_vidc_fw_debug_mode			0
+#define msm_vidc_fw_coverage			0
+#define msm_vidc_fw_debug				0
+#define msm_vidc_enc_dcvs_mode			0
+#define msm_vidc_bitrate_clock_scaling	0
+#define msm_vidc_firmware_unload_delay	15000
+#define msm_vidc_hw_rsp_timeout			2000
+#endif
 
 #define VIDC_MSG_PRIO2STRING(__level) ({ \
 	char *__str; \
@@ -102,6 +116,7 @@ extern bool msm_vidc_debug_timeout;
 	__str; \
 	})
 
+#ifdef CONFIG_MSM_VIDC_DEBUG
 #define dprintk(__level, __fmt, arg...)	\
 	do { \
 		if (msm_vidc_debug & __level) { \
@@ -113,16 +128,21 @@ extern bool msm_vidc_debug_timeout;
 		} \
 	} while (0)
 
-
-
-struct dentry *msm_vidc_debugfs_init_drv(void);
 struct dentry *msm_vidc_debugfs_init_core(struct msm_vidc_core *core,
 		struct dentry *parent);
-struct dentry *msm_vidc_debugfs_init_inst(struct msm_vidc_inst *inst,
-		struct dentry *parent);
-void msm_vidc_debugfs_deinit_inst(struct msm_vidc_inst *inst);
+
 void msm_vidc_debugfs_update(struct msm_vidc_inst *inst,
 		enum msm_vidc_debugfs_event e);
+
+void msm_vidc_debugfs_deinit_inst(struct msm_vidc_inst *inst);
+
+struct dentry *msm_vidc_debugfs_init_inst(struct msm_vidc_inst *inst,
+		struct dentry *parent);
+
+struct dentry *msm_vidc_debugfs_init_drv(void);
+#else
+#define dprintk(__level, __fmt, arg...) do { } while (0)
+#endif
 
 static inline void tic(struct msm_vidc_inst *i, enum profiling_points p,
 				 char *b)

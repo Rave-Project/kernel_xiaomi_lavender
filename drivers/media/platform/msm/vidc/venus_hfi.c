@@ -4150,9 +4150,11 @@ static int __protect_cp_mem(struct venus_hfi_device *device)
 				rc, resp);
 	}
 
+#ifdef CONFIG_MSM_VIDC_DEBUG
 	trace_venus_hfi_var_done(
 		memprot.cp_start, memprot.cp_size,
 		memprot.cp_nonpixel_start, memprot.cp_nonpixel_size);
+#endif
 	return rc;
 }
 
@@ -4470,8 +4472,9 @@ static int __load_fw(struct venus_hfi_device *device)
 		dprintk(VIDC_ERR, "Failed to initialize packetization\n");
 		goto fail_init_pkt;
 	}
+#ifdef CONFIG_MSM_VIDC_DEBUG
 	trace_msm_v4l2_vidc_fw_load_start("msm_v4l2_vidc venus_fw load start");
-
+#endif
 	rc = __venus_power_on(device);
 	if (rc) {
 		dprintk(VIDC_ERR, "Failed to power on venus in in load_fw\n");
@@ -4500,7 +4503,9 @@ static int __load_fw(struct venus_hfi_device *device)
 			goto fail_protect_mem;
 		}
 	}
+#ifdef CONFIG_MSM_VIDC_DEBUG
 	trace_msm_v4l2_vidc_fw_load_end("msm_v4l2_vidc venus_fw load end");
+#endif
 	return rc;
 fail_protect_mem:
 	if (device->resources.fw.cookie)
@@ -4513,7 +4518,9 @@ fail_venus_power_on:
 fail_init_pkt:
 	__deinit_resources(device);
 fail_init_res:
+#ifdef CONFIG_MSM_VIDC_DEBUG
 	trace_msm_v4l2_vidc_fw_load_end("msm_v4l2_vidc venus_fw load end");
+#endif
 	return rc;
 }
 
