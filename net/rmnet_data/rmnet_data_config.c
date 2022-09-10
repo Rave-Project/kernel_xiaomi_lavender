@@ -28,7 +28,6 @@
 #include "rmnet_data_private.h"
 #include "rmnet_data_trace.h"
 
-RMNET_LOG_MODULE(RMNET_DATA_LOGMASK_CONFIG);
 
 /* ***************** Local Definitions and Declarations ********************* */
 static struct sock *nl_socket_handle;

@@ -34,7 +34,6 @@
 #include "rmnet_private.h"
 #include "rmnet_stats.h"
 
-RMNET_LOG_MODULE(RMNET_LOGMASK_MAPD);
 
 #define RMNET_MAP_DEAGGR_SPACING  64
 #define RMNET_MAP_DEAGGR_HEADROOM (RMNET_MAP_DEAGGR_SPACING / 2)

@@ -25,8 +25,6 @@
 #include "rmnet_vnd.h"
 #include "rmnet_private.h"
 
-RMNET_LOG_MODULE(RMNET_LOGMASK_CONFIG);
-
 /* Local Definitions and Declarations */
 #define RMNET_LOCAL_LOGICAL_ENDPOINT -1
 #define RMNET_MAX_AGG_COUNT (128)
