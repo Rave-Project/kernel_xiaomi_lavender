@@ -33,44 +33,23 @@ extern unsigned int rmnet_log_module_mask;
 #define RMNET_LOG_LVL_HI  BIT(1)
 #define RMNET_LOG_LVL_ERR BIT(0)
 
-#define RMNET_LOG_MODULE(X) \
-	static u32 rmnet_mod_mask = X
-
 #define RMNET_LOGMASK_CONFIG  BIT(0)
 #define RMNET_LOGMASK_HANDLER BIT(1)
 #define RMNET_LOGMASK_VND     BIT(2)
 #define RMNET_LOGMASK_MAPD    BIT(3)
 #define RMNET_LOGMASK_MAPC    BIT(4)
 
-#define LOGE(fmt, ...) do { if (rmnet_log_level & RMNET_LOG_LVL_ERR) \
-			pr_err("[RMNET:ERR] %s(): " fmt "\n", __func__, \
-				##__VA_ARGS__); \
-			} while (0)
+#define LOGE(fmt, ...) do { } while (0)
 
-#define LOGH(fmt, ...) do { if (rmnet_log_level & RMNET_LOG_LVL_HI) \
-			pr_err("[RMNET:HI] %s(): " fmt "\n", __func__, \
-				##__VA_ARGS__); \
-			} while (0)
+#define LOGH(fmt, ...) do { } while (0)
 
-#define LOGM(fmt, ...) do { if (rmnet_log_level & RMNET_LOG_LVL_MED) \
-			pr_warn("[RMNET:MED] %s(): " fmt "\n", __func__, \
-				##__VA_ARGS__); \
-			} while (0)
+#define LOGM(fmt, ...) do { } while (0)
 
-#define LOGL(fmt, ...) do { if (unlikely \
-			(rmnet_log_level & RMNET_LOG_LVL_LOW)) \
-			pr_notice("[RMNET:LOW] %s(): " fmt "\n", __func__, \
-				##__VA_ARGS__); \
-			} while (0)
+#define LOGL(fmt, ...) do { } while (0)
 
 /* Don't use pr_debug as it is compiled out of the kernel. We can be sure of
  * minimal impact as LOGD is not enabled by default.
  */
-#define LOGD(fmt, ...) do { if (unlikely( \
-			    (rmnet_log_level & RMNET_LOG_LVL_DBG) &&\
-			    (rmnet_log_module_mask & rmnet_mod_mask))) \
-			pr_notice("[RMNET:DBG] %s(): " fmt "\n", __func__, \
-				  ##__VA_ARGS__); \
-			} while (0)
+#define LOGD(fmt, ...) do { } while (0)
 
 #endif /* _RMNET_PRIVATE_H_ */

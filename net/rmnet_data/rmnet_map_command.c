@@ -25,8 +25,6 @@
 #include "rmnet_data_vnd.h"
 #include "rmnet_data_stats.h"
 
-RMNET_LOG_MODULE(RMNET_DATA_LOGMASK_MAPC);
-
 unsigned long int rmnet_map_command_stats[RMNET_MAP_COMMAND_ENUM_LENGTH];
 module_param_array(rmnet_map_command_stats, ulong, 0, S_IRUGO);
 MODULE_PARM_DESC(rmnet_map_command_stats, "MAP command statistics");

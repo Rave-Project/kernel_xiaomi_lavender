@@ -32,8 +32,6 @@
 #include "rmnet_data_stats.h"
 #include "rmnet_data_trace.h"
 
-RMNET_LOG_MODULE(RMNET_DATA_LOGMASK_VND);
-
 #define RMNET_MAP_FLOW_NUM_TC_HANDLE 3
 #define RMNET_VND_UF_ACTION_ADD 0
 #define RMNET_VND_UF_ACTION_DEL 1

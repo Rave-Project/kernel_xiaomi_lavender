@@ -22,7 +22,6 @@
 #include "rmnet_vnd.h"
 #include "rmnet_stats.h"
 
-RMNET_LOG_MODULE(RMNET_LOGMASK_MAPC);
 
 unsigned long int rmnet_map_command_stats[RMNET_MAP_COMMAND_ENUM_LENGTH];
 module_param_array(rmnet_map_command_stats, ulong, 0, 0444);
