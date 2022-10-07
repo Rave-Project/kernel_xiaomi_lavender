@@ -288,6 +288,7 @@ static int max_extfrag_threshold = 1000;
 #endif
 
 static int one_thousand = 1000;
+static unsigned int sysctl_sched_boost;
 static unsigned int sysctl_sched_freq_reporting_policy;
 static unsigned int sysctl_sched_freq_inc_notify;
 static unsigned int sysctl_sched_freq_dec_notify;
@@ -314,6 +315,15 @@ static unsigned int sysctl_sched_short_burst;
 static unsigned int sysctl_sched_short_sleep;
 
 static struct ctl_table kern_table[] = {
+	{
+		.procname	= "sched_boost",
+		.data		= &sysctl_sched_boost,
+		.maxlen		= sizeof(unsigned int),
+		.mode		= 0644,
+		.proc_handler	= proc_dointvec_minmax,
+		.extra1         = &zero,
+		.extra2		= &three,
+	},
 	{
 		.procname	= "sched_freq_reporting_policy",
 		.data		= &sysctl_sched_freq_reporting_policy,
