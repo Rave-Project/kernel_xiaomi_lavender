@@ -926,17 +926,7 @@ static int smb2_usb_port_set_prop(struct power_supply *psy,
 		enum power_supply_property psp,
 		const union power_supply_propval *val)
 {
-	int rc = 0;
-
-	switch (psp) {
-	default:
-		pr_err_ratelimited("Set prop %d is not supported in pc_port\n",
-				psp);
-		rc = -EINVAL;
-		break;
-	}
-
-	return rc;
+	return -EINVAL;
 }
 
 static const struct power_supply_desc usb_port_psy_desc = {
