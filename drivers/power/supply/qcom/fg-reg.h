@@ -58,6 +58,7 @@
 #define BATT_INFO_JEITA_COLD(chip)		(chip->batt_info_base + 0x63)
 #define BATT_INFO_JEITA_HOT(chip)		(chip->batt_info_base + 0x64)
 #define BATT_INFO_JEITA_TOO_HOT(chip)		(chip->batt_info_base + 0x65)
+
 /* only for v1.1 */
 #define BATT_INFO_ESR_CFG(chip)			(chip->batt_info_base + 0x69)
 /* starting from v2.0 */

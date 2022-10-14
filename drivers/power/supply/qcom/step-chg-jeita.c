@@ -1,5 +1,4 @@
 /* Copyright (c) 2017 The Linux Foundation. All rights reserved.
- * Copyright (C) 2019 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -119,77 +118,25 @@ static struct step_chg_cfg step_chg_config = {
 static struct jeita_fcc_cfg jeita_fcc_config = {
 	.psy_prop	= POWER_SUPPLY_PROP_TEMP,
 	.prop_name	= "BATT_TEMP",
-#ifdef CONFIG_MACH_LONGCHEER
-	.hysteresis	= 0, /* 1degC hysteresis */
-#elif defined(CONFIG_MACH_MI)
-	.hysteresis	= 5, /* 0.5 degC hysteresis */
-#else
 	.hysteresis	= 10, /* 1degC hysteresis */
-#endif
 	.fcc_cfg	= {
 		/* TEMP_LOW	TEMP_HIGH	FCC */
-#ifdef CONFIG_MACH_XIAOMI_WAYNE
-		{0,		50,		300000},
-		{51,		150,		900000},
-		{151,		450,		2900000},
-		{451,		600,		1500000},
-#elif defined(CONFIG_MACH_XIAOMI_LAVENDER)
-		{0,		50,		400000},
-		{51,		150,		1200000},
-		{151,		450,		2900000},
-		{451,		600,		2000000},
-#elif defined(CONFIG_MACH_XIAOMI_WHYRED)
-		{0,		50,		400000},
-		{51,		150,		1200000},
-		{151,		450,		2500000},
-		{451,		600,		1200000},
-#elif defined(CONFIG_MACH_XIAOMI_TULIP)
-		{0,		50,		400000},
-		{51,		150,		1200000},
-		{151,		450,		2500000},
-		{451,		600,		2000000},
-#elif defined(CONFIG_MACH_MI)
-		{0,		50,		325000},
-		{51,		100,		1000000},
-		{101,		150,		1000000},
-		{151,		450,		3300000},
-		{451,		580,		1700000},
-#else
 		{0,		100,		600000},
 		{101,		200,		2000000},
 		{201,		450,		3000000},
 		{451,		550,		600000},
-#endif
 	},
 };
 
 static struct jeita_fv_cfg jeita_fv_config = {
 	.psy_prop	= POWER_SUPPLY_PROP_TEMP,
 	.prop_name	= "BATT_TEMP",
-#ifdef CONFIG_MACH_LONGCHEER
-	.hysteresis	= 0, /* 1degC hysteresis */
-#elif defined(CONFIG_MACH_MI)
-	.hysteresis	= 5, /* 0.5 degC hysteresis */
-#else
 	.hysteresis	= 10, /* 1degC hysteresis */
-#endif
 	.fv_cfg		= {
 		/* TEMP_LOW	TEMP_HIGH	FCC */
-#ifdef CONFIG_MACH_LONGCHEER
-		{0,	150,		4400000},
-		{151,	450,		4400000},
-		{451,	600,		4100000},
-#elif defined(CONFIG_MACH_MI)
-		{0,		50,		4400000},
-		{51,		100,		4400000},
-		{101,		150,		4400000},
-		{151,		450,		4400000},
-		{451,		580,		4100000},
-#else
 		{0,		100,		4200000},
 		{101,		450,		4400000},
 		{451,		550,		4200000},
-#endif
 	},
 };
 
@@ -217,7 +164,6 @@ static int get_val(struct range_data *range, int hysteresis, int current_index,
 			range[i].high_threshold, threshold)) {
 			*new_index = i;
 			*val = range[i].value;
-			break;
 		}
 
 	/* if nothing was found, return -ENODATA */
@@ -319,36 +265,11 @@ reschedule:
 	return (STEP_CHG_HYSTERISIS_DELAY_US - elapsed_us + 1000);
 }
 
-#ifdef CONFIG_MACH_XIAOMI_WAYNE
-extern union power_supply_propval lct_therm_lvl_reserved;
-extern int LctIsInVideo;
-extern int hwc_check_india;
-union power_supply_propval lct_therm_video_level = {6,};
-#endif
-
 static int handle_jeita(struct step_chg_info *chip)
 {
 	union power_supply_propval pval = {0, };
 	int rc = 0, fcc_ua = 0, fv_uv = 0;
 	u64 elapsed_us;
-#ifdef CONFIG_MACH_LONGCHEER
-	int temp = 1;
-#endif
-
-#ifdef CONFIG_MACH_XIAOMI_WAYNE
-	if (hwc_check_india) {
-		pr_err("lct video LctIsInVideo=%d, lct_therm_lvl_reserved=%d\n",
-				LctIsInVideo, lct_therm_lvl_reserved.intval);
-		if (LctIsInVideo)
-			rc = power_supply_set_property(chip->batt_psy,
-					POWER_SUPPLY_PROP_SYSTEM_TEMP_LEVEL,
-					&lct_therm_video_level);
-		else
-			rc = power_supply_set_property(chip->batt_psy,
-					POWER_SUPPLY_PROP_SYSTEM_TEMP_LEVEL,
-					&lct_therm_lvl_reserved);
-	}
-#endif
 
 	rc = power_supply_get_property(chip->batt_psy,
 		POWER_SUPPLY_PROP_SW_JEITA_ENABLED, &pval);
@@ -375,10 +296,6 @@ static int handle_jeita(struct step_chg_info *chip)
 		pr_err("Couldn't read %s property rc=%d\n",
 				step_chg_config.prop_name, rc);
 		return rc;
-#ifdef CONFIG_MACH_LONGCHEER
-	} else {
-		temp = pval.intval;
-#endif
 	}
 
 	rc = get_val(jeita_fcc_config.fcc_cfg, jeita_fcc_config.hysteresis,
@@ -401,11 +318,6 @@ static int handle_jeita(struct step_chg_info *chip)
 
 	vote(chip->fcc_votable, JEITA_VOTER, true, fcc_ua);
 
-#ifdef CONFIG_MACH_XIAOMI_TULIP
-	if ((temp < 0) || (temp > 600))
-		vote(chip->fcc_votable, JEITA_VOTER, true, 0);
-#endif
-
 	rc = get_val(jeita_fv_config.fv_cfg, jeita_fv_config.hysteresis,
 			chip->jeita_fv_index,
 			pval.intval,
@@ -422,13 +334,10 @@ static int handle_jeita(struct step_chg_info *chip)
 	if (!chip->fv_votable)
 		goto update_time;
 
-#ifdef CONFIG_MACH_MI
-	if (fv_uv > 0)
-#endif
 	vote(chip->fv_votable, JEITA_VOTER, true, fv_uv);
 
 	pr_debug("%s = %d FCC = %duA FV = %duV\n",
-		jeita_fv_config.prop_name, pval.intval, fcc_ua, fv_uv);
+		step_chg_config.prop_name, pval.intval, fcc_ua, fv_uv);
 
 update_time:
 	chip->jeita_last_update_time = ktime_get();
@@ -512,36 +421,6 @@ static int step_chg_register_notifier(struct step_chg_info *chip)
 
 	return 0;
 }
-
-#ifdef CONFIG_MACH_MI
-int qcom_soft_jeita_fcc_init(int critical_low_fcc, int cool_fcc, int normal_cool_fcc, int normal_fcc, int warm_fcc)
-{
-	if (the_chip == NULL) {
-		pr_err("Qcom soft jeita chip info is not initialized\n");
-		return -EINVAL;
-	}
-	if (the_chip->sw_jeita_enable) {
-		jeita_fcc_config.fcc_cfg[0].value = critical_low_fcc;
-		jeita_fcc_config.fcc_cfg[1].value = cool_fcc;
-		jeita_fcc_config.fcc_cfg[2].value = normal_cool_fcc;
-		jeita_fcc_config.fcc_cfg[3].value = normal_fcc;
-		jeita_fcc_config.fcc_cfg[4].value = warm_fcc;
-
-		pr_info("jeita_fcc_config.fcc_cfg[0].value: %d "
-				"jeita_fcc_config.fcc_cfg[1].value: %d "
-				"jeita_fcc_config.fcc_cfg[2].value: %d "
-				"jeita_fcc_config.fcc_cfg[3].value: %d "
-				"jeita_fcc_config.fcc_cfg[4].value: %d\n",
-				jeita_fcc_config.fcc_cfg[0].value,
-				jeita_fcc_config.fcc_cfg[1].value,
-				jeita_fcc_config.fcc_cfg[2].value,
-				jeita_fcc_config.fcc_cfg[3].value,
-				jeita_fcc_config.fcc_cfg[4].value);
-	}
-
-	return 0;
-}
-#endif
 
 int qcom_step_chg_init(bool step_chg_enable, bool sw_jeita_enable)
 {
