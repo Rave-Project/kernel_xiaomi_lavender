@@ -60,9 +60,6 @@ static ssize_t power_supply_show_property(struct device *dev,
 		"Unknown", "Good", "Overheat", "Dead", "Over voltage",
 		"Unspecified failure", "Cold", "Watchdog timer expire",
 		"Safety timer expire",
-#ifdef CONFIG_MACH_LONGCHEER
-		"Low_Cool",
-#endif
 		"Warm", "Cool", "Hot"
 	};
 	static char *technology_text[] = {
@@ -132,11 +129,6 @@ static ssize_t power_supply_show_property(struct device *dev,
 		return sprintf(buf, "%s\n", health_text[value.intval]);
 	else if (off >= POWER_SUPPLY_PROP_MODEL_NAME)
 		return sprintf(buf, "%s\n", value.strval);
-#ifdef CONFIG_MACH_MI
-	else if (off == POWER_SUPPLY_PROP_TYPE_RECHECK)
-		return scnprintf(buf, PAGE_SIZE, "0x%x\n",
-				value.intval);
-#endif
 
 	if (off == POWER_SUPPLY_PROP_CHARGE_COUNTER_EXT)
 		return sprintf(buf, "%lld\n", value.int64val);
@@ -320,17 +312,6 @@ static struct device_attribute power_supply_attrs[] = {
 	POWER_SUPPLY_ATTR(enable_jeita_detection),
 	POWER_SUPPLY_ATTR(allow_hvdcp3),
 	POWER_SUPPLY_ATTR(max_pulse_allowed),
-	POWER_SUPPLY_ATTR(parallel_batfet_mode),
-	POWER_SUPPLY_ATTR(parallel_fcc_max),
-	POWER_SUPPLY_ATTR(min_icl),
-	POWER_SUPPLY_ATTR(fg_reset_clock),
-#ifdef CONFIG_MACH_XIAOMI_SDM660
-	POWER_SUPPLY_ATTR(rerun_apsd),
-#ifdef CONFIG_MACH_MI
-	POWER_SUPPLY_ATTR(type_recheck),
-	POWER_SUPPLY_ATTR(charger_type),
-#endif
-#endif
 	/* Local extensions of type int64_t */
 	POWER_SUPPLY_ATTR(charge_counter_ext),
 	/* Properties of type `const char *' */
