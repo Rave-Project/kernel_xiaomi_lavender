@@ -581,7 +581,7 @@ static int smb2_usb_set_prop(struct power_supply *psy,
 		rc = smblib_set_prop_rerun_apsd(chg, val);
 		break;
 	default:
-		pr_err("set prop %d is not supported\n", psp);
+//		pr_err("set prop %d is not supported\n", psp);
 		rc = -EINVAL;
 		break;
 	}
@@ -808,7 +808,7 @@ static int smb2_usb_main_set_prop(struct power_supply *psy,
 		rc = smblib_set_icl_current(chg, val->intval);
 		break;
 	default:
-		pr_err("set prop %d is not supported\n", psp);
+//		pr_err("set prop %d is not supported\n", psp);
 		rc = -EINVAL;
 		break;
 	}
