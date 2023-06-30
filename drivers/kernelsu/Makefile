@@ -12,7 +12,9 @@ obj-y += embed_ksud.o
 obj-y += kernel_compat.o
 
 obj-y += selinux/
-ccflags-y += -DKSU_VERSION=16
+KSU_GIT_VERSION=855
+$(eval KSU_VERSION=$(shell expr 10000 + $(KSU_GIT_VERSION) + 200))
+ccflags-y += -DKSU_VERSION=$(KSU_VERSION)
 
 ifndef EXPECTED_SIZE
 EXPECTED_SIZE := 0x033b
