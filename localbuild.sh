@@ -1,8 +1,6 @@
 #!/bin/bash
 
-#
 # Color UI
-#
 grn=$(tput setaf 2)             # green
 yellow=$(tput setaf 3)          # yellow
 bldgrn=${txtbld}$(tput setaf 2) # bold green
@@ -22,18 +20,6 @@ CPU=$(nproc --all)
 KEY="none"
 SUBNAME="none"
 CHAT="-1001441002138"
-
-#
-# Clean environment
-#
-if [ ${1} == "clean" ]; then
-    echo "Clean zip..."
-    rm -rf *.zip
-    echo "Clean AnyKernel..."
-    rm -rf anykernel
-    echo "Done."
-    exit
-fi
 
 #
 # Add support cmd:
@@ -82,37 +68,26 @@ if [ ! $KEY == "none" ]; then
         -d text="<b>• Build For Lavender started •</b>"
 fi
 
-#
 # Clean stuff
-#
 if [ -f "out/arch/arm64/boot/Image.gz-dtb" ]; then
     rm -rf "out/arch/arm64/boot/Image.gz-dtb"
 fi
 
-#
 # build from
-#
 export KBUILD_BUILD_USER="Peppe289"
-export KBUILD_BUILD_HOST="RaveRules"
+export KBUILD_BUILD_HOST="archlinux"
+export KBUILD_COMPILER_STRING="Rave Clang version 18.0.0"
 
-#
 # start build date
-#
 DATE=$(date +"%Y%m%d-%H%M")
 
-#
 # Compiler type
-#
 TOOLCHAIN_DIRECTORY="../toolchain"
 
-#
 # Build defconfig
-#
 DEFCONFIG="lavender_defconfig"
 
-#
 # Check for compiler
-#
 if [ ! -d "$TOOLCHAIN_DIRECTORY" ]; then
     mkdir $TOOLCHAIN_DIRECTORY
 fi
@@ -120,26 +95,20 @@ fi
 
 if [ -d "$TOOLCHAIN_DIRECTORY/clang" ]; then
     echo -e "${bldgrn}"
-    echo "Proton-Clang is ready"
+    echo "clang is ready"
     echo -e "${txtrst}"
 else
     echo -e "${red}"
-    echo "Need to download Proton-Clang"
+    echo "Need to download clang"
     echo -e "${txtrst}"
-    git clone --depth=1 https://github.com/Peppe289/proton-clang.git $TOOLCHAIN_DIRECTORY/clang
-    if [ ! -d "$TOOLCHAIN_DIRECTORY/clang" ]; then
-        echo -e "${red}"
-        echo "Error to download Clang"
-        echo -e "${txtrst}"
-        exit
-    fi
+    exit
 fi
 
 #
-# Build start with Proton Clang
+# Build start with clang
 #
 PATH="$(pwd)/$TOOLCHAIN_DIRECTORY/clang/bin:${PATH}"
-make O=out ARCH=arm64 $DEFCONFIG
+make O=out CC=clang ARCH=arm64 $DEFCONFIG
 make -j$CPU O=out \
 			ARCH=arm64 \
 			CC=clang \
@@ -158,14 +127,10 @@ if [ ! -f "out/arch/arm64/boot/Image.gz-dtb" ]; then
     exit
 fi
 
-#
 # Download anykernel for flash kernel
-#
 git clone --depth=1 https://github.com/Peppe289/AnyKernel3.git -b lavender anykernel
 
-#
 # If download of anykernel give some error abort zip operation
-#
 if [ ! -f "anykernel/anykernel.sh" ]; then
     echo -e "${red}"
     echo "AnyKernel error. Abort zip."
