@@ -64,6 +64,7 @@
 #include <asm/uaccess.h>
 #include <asm/io.h>
 #include <asm/unistd.h>
+#include <linux/string_helpers.h>
 
 #ifndef SET_UNALIGN_CTL
 # define SET_UNALIGN_CTL(a, b)	(-EINVAL)
@@ -1142,6 +1143,24 @@ static int override_release(char __user *release, size_t len)
 	return ret;
 }
 
+static void override_custom_release(char __user *release, size_t len)
+{
+#ifdef CONFIG_UNAME_OVERRIDE
+	char *buf;
+
+	buf = kstrdup_quotable_cmdline(current, GFP_KERNEL);
+	if (buf == NULL)
+		return;
+
+	if (strstr(buf, CONFIG_UNAME_OVERRIDE_TARGET)) {
+		copy_to_user(release, CONFIG_UNAME_OVERRIDE_STRING,
+			       strlen(CONFIG_UNAME_OVERRIDE_STRING) + 1);
+	}
+
+	kfree(buf);
+#endif
+}
+
 SYSCALL_DEFINE1(newuname, struct new_utsname __user *, name)
 {
 	struct new_utsname tmp;
@@ -1152,6 +1171,7 @@ SYSCALL_DEFINE1(newuname, struct new_utsname __user *, name)
 	if (copy_to_user(name, &tmp, sizeof(tmp)))
 		return -EFAULT;
 
+	override_custom_release(name->release, sizeof(name->release));
 	if (override_release(name->release, sizeof(name->release)))
 		return -EFAULT;
 	if (override_architecture(name))
