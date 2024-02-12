@@ -131,3 +131,4 @@ Android.bp
 out/
 build.sh
 anykernel/
+*.zip
